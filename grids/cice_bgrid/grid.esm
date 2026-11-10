@@ -14,13 +14,15 @@
   "metaparameters": {
     "N_I": { "type": "integer", "default": 1, "description": "Number of T cells along the B-grid x axis (cell-based axis), [-]." },
     "N_J": { "type": "integer", "default": 1, "description": "Number of T cells along the B-grid y axis (cell-based axis), [-]." },
-    "NCAT": { "type": "integer", "default": 5, "description": "Number of thickness categories of the transported ice state (namelist ncat = 5 default), [-]." }
+    "NCAT": { "type": "integer", "default": 5, "description": "Number of thickness categories of the transported ice state (namelist ncat = 5 default), [-]." },
+    "N_LAYER": { "type": "integer", "default": 8, "description": "Number of vertical layers of the per-category ice enthalpy state (namelist nilyr = 8 of the D-class reference run), the size of the passive layer axis, [-]." }
   },
   "index_sets": {
     "i": { "kind": "interval", "size": "N_I" },
     "j": { "kind": "interval", "size": "N_J" },
     "corner": { "kind": "interval", "size": 4 },
-    "ncat": { "kind": "interval", "size": "NCAT" }
+    "ncat": { "kind": "interval", "size": "NCAT" },
+    "layer": { "kind": "interval", "size": "N_LAYER" }
   },
   "expression_templates": {
     "cice_cyp": {
