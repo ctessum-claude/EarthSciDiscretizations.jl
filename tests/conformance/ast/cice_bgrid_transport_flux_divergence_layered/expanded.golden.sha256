@@ -1,0 +1,7 @@
+{
+  "algorithm": "sha256",
+  "hex": "cec6d8e83e0c2597cb1e4269296ac0c6d67f572dbbde514395a136664c5f84b5",
+  "bytes": 184948,
+  "generated_by": "scripts/regenerate-goldens.sh",
+  "note": "Digest of the canonical post-lowering AST (184948 B). The full golden exceeds the 65536 B checked-in threshold, so it is pinned by hash rather than stored. Every binding must reproduce these exact bytes; regenerate locally with scripts/regenerate-goldens.sh to inspect."
+}
