@@ -1,0 +1,242 @@
+{
+  "esm": "1.3.0",
+  "metadata": {
+    "name": "mom6_ppm_limit_scale",
+    "description": "The positive-definiteness limiter scale of the MOM6 PPM reconstruction (PPM_limit_pos, MOM_continuity_PPM.F90:2653-2674): with curv = 3*((hL_raw + hR_raw) - 2*h_0) and dh = hR_raw - hL_raw, scale = 12*curv*(h_0 - h_min_recon)/(curv^2 + 3*dh^2) if curv > 0 and |dh| < curv and h_0 > h_min_recon and 12*curv*(h_0 - h_min_recon) < (curv^2 + 3*dh^2); scale = 0 (the constant h_0 reconstruction) if h_0 <= h_min_recon; scale = 1 otherwise (the raw edges are kept). The limited edges are h_L = h_0 + scale*(h_L_raw - h_0) and h_R = h_0 + scale*(h_R_raw - h_0), applied by the sibling mom6_ppm_limited_edge. The h_min_recon floor is 2*GV%Angstrom_H (the reference run: h_min_recon = 2e-10 m). Pure scalar algebra, dimensionless.",
+    "license": "MIT",
+    "tags": ["esd:stencil", "family:mom6_cgrid", "grid:mom6_cgrid", "op:limit"],
+    "references": [
+      {
+        "citation": "Colella, P., & Woodward, P. R. (1984). The Piecewise Parabolic Method (PPM) for gas-dynamical simulations. Journal of Computational Physics, 54(1), 174-201. (The positive-definiteness argument behind PPM_limit_pos.)",
+        "doi": "10.1016/0021-9991(84)90143-8"
+      }
+    ]
+  },
+  "expression_templates": {
+    "mom6_ppm_limit_scale": {
+      "params": ["hL_raw", "hR_raw", "h_0", "h_min_recon"],
+      "description": "The PPM_limit_pos limiter scale of one cell (MOM_continuity_PPM.F90:2653-2674)",
+      "body": {
+        "op": "ifelse",
+        "args": [
+          {
+            "op": ">",
+            "args": [
+              {
+                "op": "*",
+                "args": [
+                  3.0,
+                  {
+                    "op": "-",
+                    "args": [
+                      { "op": "+", "args": ["hL_raw", "hR_raw"] },
+                      { "op": "*", "args": [2.0, "h_0"] }
+                    ]
+                  }
+                ]
+              },
+              0.0
+            ]
+          },
+          {
+            "op": "ifelse",
+            "args": [
+              {
+                "op": "<",
+                "args": [
+                  { "op": "abs", "args": [{ "op": "-", "args": ["hR_raw", "hL_raw"] }] },
+                  {
+                    "op": "*",
+                    "args": [
+                      3.0,
+                      {
+                        "op": "-",
+                        "args": [
+                          { "op": "+", "args": ["hL_raw", "hR_raw"] },
+                          { "op": "*", "args": [2.0, "h_0"] }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "ifelse",
+                "args": [
+                  { "op": "<=", "args": ["h_0", "h_min_recon"] },
+                  0.0,
+                  {
+                    "op": "ifelse",
+                    "args": [
+                      {
+                        "op": "<",
+                        "args": [
+                          {
+                            "op": "*",
+                            "args": [
+                              12.0,
+                              {
+                                "op": "*",
+                                "args": [
+                                  {
+                                    "op": "*",
+                                    "args": [
+                                      3.0,
+                                      {
+                                        "op": "-",
+                                        "args": [
+                                          { "op": "+", "args": ["hL_raw", "hR_raw"] },
+                                          { "op": "*", "args": [2.0, "h_0"] }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  { "op": "-", "args": ["h_0", "h_min_recon"] }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "+",
+                            "args": [
+                              {
+                                "op": "*",
+                                "args": [
+                                  {
+                                    "op": "*",
+                                    "args": [
+                                      3.0,
+                                      {
+                                        "op": "-",
+                                        "args": [
+                                          { "op": "+", "args": ["hL_raw", "hR_raw"] },
+                                          { "op": "*", "args": [2.0, "h_0"] }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "op": "*",
+                                    "args": [
+                                      3.0,
+                                      {
+                                        "op": "-",
+                                        "args": [
+                                          { "op": "+", "args": ["hL_raw", "hR_raw"] },
+                                          { "op": "*", "args": [2.0, "h_0"] }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "*",
+                                "args": [
+                                  3.0,
+                                  {
+                                    "op": "*",
+                                    "args": [
+                                      { "op": "-", "args": ["hR_raw", "hL_raw"] },
+                                      { "op": "-", "args": ["hR_raw", "hL_raw"] }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "/",
+                        "args": [
+                          {
+                            "op": "*",
+                            "args": [
+                              12.0,
+                              {
+                                "op": "*",
+                                "args": [
+                                  {
+                                    "op": "*",
+                                    "args": [
+                                      3.0,
+                                      {
+                                        "op": "-",
+                                        "args": [
+                                          { "op": "+", "args": ["hL_raw", "hR_raw"] },
+                                          { "op": "*", "args": [2.0, "h_0"] }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  { "op": "-", "args": ["h_0", "h_min_recon"] }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "+",
+                            "args": [
+                              {
+                                "op": "*",
+                                "args": [
+                                  {
+                                    "op": "*",
+                                    "args": [
+                                      3.0,
+                                      {
+                                        "op": "-",
+                                        "args": [
+                                          { "op": "+", "args": ["hL_raw", "hR_raw"] },
+                                          { "op": "*", "args": [2.0, "h_0"] }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "op": "*",
+                                    "args": [
+                                      3.0,
+                                      {
+                                        "op": "-",
+                                        "args": [
+                                          { "op": "+", "args": ["hL_raw", "hR_raw"] },
+                                          { "op": "*", "args": [2.0, "h_0"] }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "*",
+                                "args": [
+                                  3.0,
+                                  {
+                                    "op": "*",
+                                    "args": [
+                                      { "op": "-", "args": ["hR_raw", "hL_raw"] },
+                                      { "op": "-", "args": ["hR_raw", "hL_raw"] }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      1.0
+                    ]
+                  }
+                ]
+              },
+              1.0
+            ]
+          },
+          1.0
+        ]
+      }
+    }
+  }
+}
