@@ -2,7 +2,7 @@
   "esm": "2.3.0",
   "metadata": {
     "name": "ppmflux_D_lat_inflow_whole",
-    "description": "The upwind-biased, monotone, conservative flux-form meridional advection D(V*q) at EVERY cell of the regional latlon3d grid at once, OPEN walls included: exactly the expression of ./ppmflux_D_lat_interior (the same spherical metric and the same two face fluxes ../stencils/ppmflux_lev_face_flux, upper face first), with each window member of a face read through the lateral halo. The upper face of cell j reads cells j-2..j+3 and V at face j+1, the lower face cells j-3..j+2 and V at face j. A member outside the domain is the prescribed lateral-boundary concentration (qbc_s below cell 1, qbc_n above cell NLAT), so each read is ifelse(inside, q at the clamped cell, halo): the subscript stays in range and the halo is selected exactly; the meridional widths dphi_lat are read at the clamped (edge-extended) cell. This is the boundary closure the open-wall rule has always used -- every near-wall slab of the earlier spelling read exactly this window -- written so that the lat index is an ordinary array axis and the operator is one aggregate instead of an interior stencil plus six one-row slabs. At q == 1 with the halo == 1 every slope is 0.0 and each face flux is the wind bitwise. Any NLAT >= 1.",
+    "description": "The upwind-biased, monotone, conservative flux-form meridional advection D(V*q) at EVERY cell of the regional latlon3d grid at once, OPEN walls included: exactly the expression of ./ppmflux_D_lat_interior (the same spherical metric and the same two face fluxes ../stencils/ppmflux_lev_face_flux, upper face first), with each window member of a face read through the lateral halo. The upper face of cell j reads cells j-2..j+3 and V at face j+1, the lower face cells j-3..j+2 and V at face j. A member outside the domain is the prescribed lateral-boundary concentration (qbc_s below cell 1, qbc_n above cell NLAT), so each read is a guarded plain offset, ifelse(inside, q at the offset cell, halo) (the esm-spec 4.3.3 guard: the read in the branch not taken is never performed); the meridional widths are edge-extended the same way, ifelse(inside, dphi_lat at the offset cell, dphi_lat at the wall cell). This is the boundary closure the open-wall rule has always used -- every near-wall slab of the earlier spelling read exactly this window -- written so that the lat index is an ordinary array axis and the operator is one aggregate instead of an interior stencil plus six one-row slabs. At q == 1 with the halo == 1 every slope is 0.0 and each face flux is the wind bitwise. Any NLAT >= 1.",
     "license": "MIT",
     "tags": [
       "esd:stencil",
@@ -109,16 +109,10 @@
                                 "q",
                                 "i",
                                 {
-                                  "op": "max",
+                                  "op": "-",
                                   "args": [
-                                    {
-                                      "op": "-",
-                                      "args": [
-                                        "j",
-                                        2
-                                      ]
-                                    },
-                                    1
+                                    "j",
+                                    2
                                   ]
                                 },
                                 "k"
@@ -156,15 +150,9 @@
                                 "q",
                                 "i",
                                 {
-                                  "op": "max",
+                                  "op": "-",
                                   "args": [
-                                    {
-                                      "op": "-",
-                                      "args": [
-                                        "j",
-                                        1
-                                      ]
-                                    },
+                                    "j",
                                     1
                                   ]
                                 },
@@ -212,16 +200,10 @@
                                 "q",
                                 "i",
                                 {
-                                  "op": "min",
+                                  "op": "+",
                                   "args": [
-                                    {
-                                      "op": "+",
-                                      "args": [
-                                        "j",
-                                        1
-                                      ]
-                                    },
-                                    "NLAT"
+                                    "j",
+                                    1
                                   ]
                                 },
                                 "k"
@@ -259,16 +241,10 @@
                                 "q",
                                 "i",
                                 {
-                                  "op": "min",
+                                  "op": "+",
                                   "args": [
-                                    {
-                                      "op": "+",
-                                      "args": [
-                                        "j",
-                                        2
-                                      ]
-                                    },
-                                    "NLAT"
+                                    "j",
+                                    2
                                   ]
                                 },
                                 "k"
@@ -306,16 +282,10 @@
                                 "q",
                                 "i",
                                 {
-                                  "op": "min",
+                                  "op": "+",
                                   "args": [
-                                    {
-                                      "op": "+",
-                                      "args": [
-                                        "j",
-                                        3
-                                      ]
-                                    },
-                                    "NLAT"
+                                    "j",
+                                    3
                                   ]
                                 },
                                 "k"
@@ -332,11 +302,10 @@
                           ]
                         },
                         "dL2": {
-                          "op": "index",
+                          "op": "ifelse",
                           "args": [
-                            "dphi_lat",
                             {
-                              "op": "max",
+                              "op": ">=",
                               "args": [
                                 {
                                   "op": "-",
@@ -347,15 +316,34 @@
                                 },
                                 1
                               ]
+                            },
+                            {
+                              "op": "index",
+                              "args": [
+                                "dphi_lat",
+                                {
+                                  "op": "-",
+                                  "args": [
+                                    "j",
+                                    2
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "index",
+                              "args": [
+                                "dphi_lat",
+                                1
+                              ]
                             }
                           ]
                         },
                         "dL1": {
-                          "op": "index",
+                          "op": "ifelse",
                           "args": [
-                            "dphi_lat",
                             {
-                              "op": "max",
+                              "op": ">=",
                               "args": [
                                 {
                                   "op": "-",
@@ -364,6 +352,26 @@
                                     1
                                   ]
                                 },
+                                1
+                              ]
+                            },
+                            {
+                              "op": "index",
+                              "args": [
+                                "dphi_lat",
+                                {
+                                  "op": "-",
+                                  "args": [
+                                    "j",
+                                    1
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "index",
+                              "args": [
+                                "dphi_lat",
                                 1
                               ]
                             }
@@ -377,11 +385,10 @@
                           ]
                         },
                         "dRc": {
-                          "op": "index",
+                          "op": "ifelse",
                           "args": [
-                            "dphi_lat",
                             {
-                              "op": "min",
+                              "op": "<=",
                               "args": [
                                 {
                                   "op": "+",
@@ -392,15 +399,34 @@
                                 },
                                 "NLAT"
                               ]
+                            },
+                            {
+                              "op": "index",
+                              "args": [
+                                "dphi_lat",
+                                {
+                                  "op": "+",
+                                  "args": [
+                                    "j",
+                                    1
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "index",
+                              "args": [
+                                "dphi_lat",
+                                "NLAT"
+                              ]
                             }
                           ]
                         },
                         "dR1": {
-                          "op": "index",
+                          "op": "ifelse",
                           "args": [
-                            "dphi_lat",
                             {
-                              "op": "min",
+                              "op": "<=",
                               "args": [
                                 {
                                   "op": "+",
@@ -411,15 +437,34 @@
                                 },
                                 "NLAT"
                               ]
+                            },
+                            {
+                              "op": "index",
+                              "args": [
+                                "dphi_lat",
+                                {
+                                  "op": "+",
+                                  "args": [
+                                    "j",
+                                    2
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "index",
+                              "args": [
+                                "dphi_lat",
+                                "NLAT"
+                              ]
                             }
                           ]
                         },
                         "dR2": {
-                          "op": "index",
+                          "op": "ifelse",
                           "args": [
-                            "dphi_lat",
                             {
-                              "op": "min",
+                              "op": "<=",
                               "args": [
                                 {
                                   "op": "+",
@@ -428,6 +473,26 @@
                                     3
                                   ]
                                 },
+                                "NLAT"
+                              ]
+                            },
+                            {
+                              "op": "index",
+                              "args": [
+                                "dphi_lat",
+                                {
+                                  "op": "+",
+                                  "args": [
+                                    "j",
+                                    3
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "index",
+                              "args": [
+                                "dphi_lat",
                                 "NLAT"
                               ]
                             }
@@ -495,16 +560,10 @@
                                 "q",
                                 "i",
                                 {
-                                  "op": "max",
+                                  "op": "-",
                                   "args": [
-                                    {
-                                      "op": "-",
-                                      "args": [
-                                        "j",
-                                        3
-                                      ]
-                                    },
-                                    1
+                                    "j",
+                                    3
                                   ]
                                 },
                                 "k"
@@ -542,16 +601,10 @@
                                 "q",
                                 "i",
                                 {
-                                  "op": "max",
+                                  "op": "-",
                                   "args": [
-                                    {
-                                      "op": "-",
-                                      "args": [
-                                        "j",
-                                        2
-                                      ]
-                                    },
-                                    1
+                                    "j",
+                                    2
                                   ]
                                 },
                                 "k"
@@ -589,15 +642,9 @@
                                 "q",
                                 "i",
                                 {
-                                  "op": "max",
+                                  "op": "-",
                                   "args": [
-                                    {
-                                      "op": "-",
-                                      "args": [
-                                        "j",
-                                        1
-                                      ]
-                                    },
+                                    "j",
                                     1
                                   ]
                                 },
@@ -645,16 +692,10 @@
                                 "q",
                                 "i",
                                 {
-                                  "op": "min",
+                                  "op": "+",
                                   "args": [
-                                    {
-                                      "op": "+",
-                                      "args": [
-                                        "j",
-                                        1
-                                      ]
-                                    },
-                                    "NLAT"
+                                    "j",
+                                    1
                                   ]
                                 },
                                 "k"
@@ -692,16 +733,10 @@
                                 "q",
                                 "i",
                                 {
-                                  "op": "min",
+                                  "op": "+",
                                   "args": [
-                                    {
-                                      "op": "+",
-                                      "args": [
-                                        "j",
-                                        2
-                                      ]
-                                    },
-                                    "NLAT"
+                                    "j",
+                                    2
                                   ]
                                 },
                                 "k"
@@ -718,11 +753,10 @@
                           ]
                         },
                         "dL2": {
-                          "op": "index",
+                          "op": "ifelse",
                           "args": [
-                            "dphi_lat",
                             {
-                              "op": "max",
+                              "op": ">=",
                               "args": [
                                 {
                                   "op": "-",
@@ -733,15 +767,34 @@
                                 },
                                 1
                               ]
+                            },
+                            {
+                              "op": "index",
+                              "args": [
+                                "dphi_lat",
+                                {
+                                  "op": "-",
+                                  "args": [
+                                    "j",
+                                    3
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "index",
+                              "args": [
+                                "dphi_lat",
+                                1
+                              ]
                             }
                           ]
                         },
                         "dL1": {
-                          "op": "index",
+                          "op": "ifelse",
                           "args": [
-                            "dphi_lat",
                             {
-                              "op": "max",
+                              "op": ">=",
                               "args": [
                                 {
                                   "op": "-",
@@ -752,15 +805,34 @@
                                 },
                                 1
                               ]
+                            },
+                            {
+                              "op": "index",
+                              "args": [
+                                "dphi_lat",
+                                {
+                                  "op": "-",
+                                  "args": [
+                                    "j",
+                                    2
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "index",
+                              "args": [
+                                "dphi_lat",
+                                1
+                              ]
                             }
                           ]
                         },
                         "dC": {
-                          "op": "index",
+                          "op": "ifelse",
                           "args": [
-                            "dphi_lat",
                             {
-                              "op": "max",
+                              "op": ">=",
                               "args": [
                                 {
                                   "op": "-",
@@ -769,6 +841,26 @@
                                     1
                                   ]
                                 },
+                                1
+                              ]
+                            },
+                            {
+                              "op": "index",
+                              "args": [
+                                "dphi_lat",
+                                {
+                                  "op": "-",
+                                  "args": [
+                                    "j",
+                                    1
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "index",
+                              "args": [
+                                "dphi_lat",
                                 1
                               ]
                             }
@@ -782,11 +874,10 @@
                           ]
                         },
                         "dR1": {
-                          "op": "index",
+                          "op": "ifelse",
                           "args": [
-                            "dphi_lat",
                             {
-                              "op": "min",
+                              "op": "<=",
                               "args": [
                                 {
                                   "op": "+",
@@ -797,15 +888,34 @@
                                 },
                                 "NLAT"
                               ]
+                            },
+                            {
+                              "op": "index",
+                              "args": [
+                                "dphi_lat",
+                                {
+                                  "op": "+",
+                                  "args": [
+                                    "j",
+                                    1
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "index",
+                              "args": [
+                                "dphi_lat",
+                                "NLAT"
+                              ]
                             }
                           ]
                         },
                         "dR2": {
-                          "op": "index",
+                          "op": "ifelse",
                           "args": [
-                            "dphi_lat",
                             {
-                              "op": "min",
+                              "op": "<=",
                               "args": [
                                 {
                                   "op": "+",
@@ -814,6 +924,26 @@
                                     2
                                   ]
                                 },
+                                "NLAT"
+                              ]
+                            },
+                            {
+                              "op": "index",
+                              "args": [
+                                "dphi_lat",
+                                {
+                                  "op": "+",
+                                  "args": [
+                                    "j",
+                                    2
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "index",
+                              "args": [
+                                "dphi_lat",
                                 "NLAT"
                               ]
                             }
